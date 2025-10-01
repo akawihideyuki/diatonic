@@ -1,1318 +1,1323 @@
-﻿<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>シン・耳コピ支援</title>
-<style>
-  :root{
-    --bg:#0b0f14;
-    --fg:#e9f1ff;
-    --muted:#9fb0c3;
-    --accent:#7bdcff;
-    --panel:#111823;
-    --ok:#75f094;
-    --tonic-bg:#14532d;
-    --tonic-border:#22c55e;
-    --tonic-text:#ecfdf5;
-    --subdom-bg:#7a5207;
-    --subdom-border:#facc15;
-    --subdom-text:#fef3c7;
-    --dom-bg:#7f1d1d;
-    --dom-border:#f87171;
-    --dom-text:#fee2e2;
-    --key-white:#f8fbff;
-    --key-black:#1f2734;
-    --key-active:#7bdcff44;
-  }
-  html,body{height:100%;}
-  body{
-    margin:0;
-    background:var(--bg);
-    color:var(--fg);
-    font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans",Meiryo,sans-serif;
-  }
-  .wrap{
-    max-width:980px;
-    margin:24px auto;
-    padding:0 18px 48px;
-  }
-  h1{
-    font-size:24px;
-    margin:0 0 16px;
-  }
-  .panel{
-    background:var(--panel);
-    border:1px solid #1e2733;
-    border-radius:16px;
-    padding:16px 18px 20px;
-    box-shadow:0 12px 32px rgba(0,0,0,.35);
-    margin-top:18px;
-  }
-  .panel:first-of-type{margin-top:0;}
-  h2{
-    font-size:18px;
-    margin:0 0 12px;
-  }
-  .control-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-    gap:14px;
-    margin-bottom:14px;
-  }
-  label{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    font-size:12px;
-    color:var(--muted);
-  }
-  select, input[type="number"], button.btn, button.toggle, button.degree-btn{
-    font:inherit;
-  }
-  select, input[type="number"], button.btn{
-    background:#0f1622;
-    color:var(--fg);
-    border:1px solid #2a3a4f;
-    border-radius:10px;
-    padding:8px 10px;
-  }
-  input[type="number"]{width:72px;}
-  button.btn, button.toggle{
-    cursor:pointer;
-    transition:border .15s, background .15s;
-  }
-  button.toggle{
-    background:#0f1622;
-    border:1px solid #2a3a4f;
-    border-radius:10px;
-    padding:8px 12px;
-    color:var(--fg);
-  }
-  button.toggle[aria-pressed="true"]{
-    border-color:var(--ok);
-    box-shadow:0 0 0 2px rgba(117,240,148,0.25) inset;
-  }
-  .toggle-row{
-    display:flex;
-    flex-wrap:wrap;
-    gap:12px;
-    margin-bottom:14px;
-  }
-  .degree-grid{
-    display:grid;
-    grid-template-columns:repeat(5,minmax(120px,1fr));
-    justify-items:stretch;
-    gap:12px;
-  }
-  .degree-block{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-  }
-  .degree-btn{
-    border-radius:12px;
-    padding:14px 12px;
-    text-align:center;
-    cursor:pointer;
-    transition:border .18s, transform .18s, box-shadow .18s, filter .18s;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:6px;
-    min-height:104px;
-    color:var(--fg);
-    border:1px solid #2a3a4f;
-    background:#0f1622;
-  }
-  .degree-btn .deg{
-    font-size:20px;
-    letter-spacing:1px;
-  }
-  .degree-btn .deg-name{
-    font-size:16px;
-    font-weight:600;
-  }
-  .degree-btn .deg-func{
-    font-size:12px;
-    letter-spacing:1px;
-    text-transform:uppercase;
-    opacity:0.85;
-  }
-  .degree-btn:focus-visible{
-    outline:2px solid var(--accent);
-    outline-offset:2px;
-  }
-  .degree-btn.active{
-    transform:translateY(-2px);
-    box-shadow:0 6px 18px rgba(0,0,0,0.35);
-    filter:brightness(1.08);
-  }
-  .secondary-btn{
-    border-radius:10px;
-    padding:8px 10px;
-    text-align:center;
-    cursor:pointer;
-    transition:border .18s, transform .18s, box-shadow .18s, filter .18s;
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-    min-height:38px;
-    color:var(--fg);
-    border:1px solid #2a3a4f;
-    background:#0f1622;
-    font-size:12px;
-  }
-  .secondary-btn .sec-roman{
-    font-size:14px;
-    letter-spacing:0.5px;
-    color:var(--accent);
-  }
-  .secondary-btn .sec-name{
-    font-size:12px;
-    color:var(--muted);
-  }
-  .secondary-btn:focus-visible{
-    outline:2px solid var(--accent);
-    outline-offset:2px;
-  }
-  .secondary-btn.active{
-    transform:translateY(-1px);
-    box-shadow:0 4px 14px rgba(0,0,0,0.32);
-    filter:brightness(1.06);
-  }
-  .degree-btn.func-tonic{
-    background:var(--tonic-bg);
-    border-color:var(--tonic-border);
-    color:var(--tonic-text);
-  }
-  .degree-btn.func-tonic .deg-func{color:#bbf7d0;}
-  .degree-btn.func-subdom{
-    background:var(--subdom-bg);
-    border-color:var(--subdom-border);
-    color:var(--subdom-text);
-  }
-  .degree-btn.func-subdom .deg-func{color:#fde68a;}
-  .degree-btn.func-dominant{
-    background:var(--dom-bg);
-    border-color:var(--dom-border);
-    color:var(--dom-text);
-  }
-  .degree-btn.func-dominant .deg-func{color:#fecaca;}
-  .secondary-btn.func-dominant{
-    background:var(--dom-bg);
-    border-color:var(--dom-border);
-    color:var(--dom-text);
-  }
-  .secondary-btn.func-dominant .sec-roman{color:#fecaca;}
-  .secondary-btn.func-dominant .sec-name{color:#fca5a5;}
-  .status{
-    margin-top:16px;
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-  }
-  .roman{
-    font-size:24px;
-    letter-spacing:1px;
-    color:var(--accent);
-  }
-  .muted{color:var(--muted);}
-  .small{font-size:12px;}
-  .badge{
-    display:inline-block;
-    font-size:12px;
-    padding:2px 8px;
-    border-radius:999px;
-    border:1px solid #2a3a4f;
-    margin-left:8px;
-    color:var(--muted);
-  }
-  .kbd{
-    background:#0f1622;
-    border:1px solid #2a3a4f;
-    border-radius:6px;
-    padding:2px 6px;
-    font:12px/1.1 "SFMono-Regular","Consolas","Liberation Mono",monospace;
-    color:var(--muted);
-  }
-  .piano{
-    position:relative;
-    padding:18px 12px 24px;
-    background:#0f1622;
-    border-radius:12px;
-    border:1px solid #1f2b3c;
-    overflow-x:auto;
-  }
-  .piano-inner{
-    position:relative;
-    height:180px;
-    min-width:520px;
-  }
-  .piano-key{
-    position:absolute;
-    top:0;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:flex-end;
-    border-radius:0 0 8px 8px;
-    border:1px solid #1f2b3c;
-    cursor:pointer;
-    user-select:none;
-    transition:transform .12s ease, box-shadow .18s ease, filter .18s ease;
-    padding-bottom:12px;
-  }
-  .piano-key .label{
-    font-size:11px;
-    color:var(--muted);
-    margin-bottom:6px;
-  }
-  .piano-key .note{
-    font-size:12px;
-    font-weight:600;
-    color:var(--accent);
-  }
-  .piano-key.white{
-    height:100%;
-    background:linear-gradient(180deg,#fefefe 0%,#e6ecf7 70%,#ccd6e8 100%);
-    color:#0f1d33;
-    box-shadow:0 4px 10px rgba(0,0,0,0.35);
-    z-index:1;
-  }
-  .piano-key.black{
-    height:116px;
-    background:linear-gradient(180deg,#2a3548 0%,#101726 60%,#04070d 100%);
-    color:#eef6ff;
-    border-radius:0 0 6px 6px;
-    box-shadow:0 6px 16px rgba(0,0,0,0.55);
-    z-index:3;
-  }
-  .piano-key.black .label{color:#dce7ff;}
-  .piano-key.black .note{color:#8fd8ff;}
-  .piano-key.black.active{
-    box-shadow:0 0 0 2px rgba(123,220,255,0.5) inset,0 10px 26px rgba(123,220,255,0.35);
-  }
-  .piano-key.active{
-    box-shadow:0 0 0 2px rgba(123,220,255,0.4) inset,0 8px 22px rgba(123,220,255,0.25);
-    filter:brightness(1.05);
-  }
-  .note-readout{
-    margin-top:10px;
-    font-variant-numeric:tabular-nums;
-  }
-  .footer{
-    margin-top:24px;
-    text-align:center;
-    opacity:.75;
-  }
-  @media (max-width:720px){
-    .degree-grid{
-      grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-    }
-  }
-  @media (max-width:680px){
-    .piano{padding:14px 8px 18px;}
-    .piano-inner{height:170px;}
-  }
-</style>
-</head>
-<body>
-<div class="wrap">
-  <h1>シン・耳コピ支援 <span class="badge">Function Colors</span></h1>
-  <div class="panel">
-    <h2>ダイアトニックコード</h2>
-    <div class="control-grid">
-      <label>Key
-        <select id="keySel"></select>
-      </label>
-      <label>Scale / Mode
-        <select id="modeSel">
-          <option value="major">Major (Ionian)</option>
-          <option value="minor">Minor (Natural)</option>
-        </select>
-      </label>
-      <label>Minor option
-        <select id="minorOpt">
-          <option value="nat">Natural minor</option>
-          <option value="harmV">Harmonic V</option>
-        </select>
-      </label>
-      <label>Voicing
-        <select id="invSel">
-          <option value="0">Root</option>
-          <option value="1">1st inv</option>
-          <option value="2">2nd inv</option>
-          <option value="3">3rd inv</option>
-        </select>
-      </label>
-      <label>Base Octave
-        <input id="octInput" type="number" min="2" max="6" step="1" value="4">
-      </label>
-      <label>Wave
-        <select id="waveSel">
-          <option value="triangle">triangle</option>
-          <option value="sawtooth">sawtooth</option>
-          <option value="square">square</option>
-          <option value="sine">sine</option>
-        </select>
-      </label>
-      <label>Strum (ms)
-        <input id="strumMs" type="number" min="0" max="80" step="5" value="15">
-      </label>
-    </div>
-    <div class="toggle-row">
-      <button type="button" id="btn7" class="toggle" aria-pressed="false">7th</button>
-      <button type="button" id="btn9" class="toggle" aria-pressed="false">add9 / 9th</button>
-      <button type="button" id="btnLatch" class="toggle" aria-pressed="false">ラッチ保持</button>
-      <button type="button" id="btnArp" class="toggle" aria-pressed="false">アルペジオ</button>
-    </div>
-    <div class="degree-grid" id="degreeButtons"></div>
-    <div class="status">
-      <div><span class="muted">Last:</span> <span id="last">--</span></div>
-      <div class="roman" id="roman"></div>
-      <div class="muted small" id="hint"></div>
-    </div>
-    <p class="muted small">
-      テンキー <span class="kbd">1-7</span> / 上段数字キーでもコードを再生できます。<span class="kbd">￥</span>（<span class="kbd">\</span>）と組み合わせると対応するセカンダリードミナントを鳴らせます。
-      <span class="kbd">+</span><span class="kbd">-</span> で調整、<span class="kbd">*</span> で波形、<span class="kbd">/</span> で転回、<span class="kbd">Enter</span> でラッチ切替、<span class="kbd">.</span> でアルペジオ、<span class="kbd">↑</span><span class="kbd">↓</span> でベースオクターブ変更。
-      色の目安: <span class="kbd" style="background:var(--tonic-bg);color:var(--tonic-text);border-color:var(--tonic-border);">T</span> トニック /
-      <span class="kbd" style="background:var(--subdom-bg);color:var(--subdom-text);border-color:var(--subdom-border);">SD</span> サブドミナント /
-      <span class="kbd" style="background:var(--dom-bg);color:var(--dom-text);border-color:var(--dom-border);">D</span> ドミナント。
-    </p>
-  </div>
-  <div class="panel">
-    <h2>簡易キーボード</h2>
-    <p class="muted small">Z〜M / , . / の下段キーと上段 QWERT の一部で 1 オクターブ半をカバーします。黒鍵は S D G H J L ; などに割り当て。画面の鍵盤もクリック・タッチで鳴らせます。</p>
-    <div class="piano" id="pianoKeys"></div>
-    <div class="note-readout muted small">現在: <span id="noteDisplay">--</span></div>
-  </div>
-
-  <div class="footer muted small">
-    ブラウザの音声を有効にするため、最初に鍵盤やコードボタンをクリックしてください。音が残った場合はラッチ解除またはタブのリロードで止められます。
-  </div>
-</div>
-<script>
-(() => {
-  const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-  const KEY_NAMES = ["C","C# / Db","D","D# / Eb","E","F","F# / Gb","G","G# / Ab","A","A# / Bb","B"];
-  const SCALE_MAJOR = [0,2,4,5,7,9,11];
-  const SCALE_MINOR_NAT = [0,2,3,5,7,8,10];
-  const SCALE_MINOR_HARM = [0,2,3,5,7,8,11];
-
-  const KEYBOARD_BINDINGS = [
-    {code:"KeyZ", label:"Z", semitone:0},
-    {code:"KeyS", label:"S", semitone:1},
-    {code:"KeyX", label:"X", semitone:2},
-    {code:"KeyD", label:"D", semitone:3},
-    {code:"KeyC", label:"C", semitone:4},
-    {code:"KeyV", label:"V", semitone:5},
-    {code:"KeyG", label:"G", semitone:6},
-    {code:"KeyB", label:"B", semitone:7},
-    {code:"KeyH", label:"H", semitone:8},
-    {code:"KeyN", label:"N", semitone:9},
-    {code:"KeyJ", label:"J", semitone:10},
-    {code:"KeyM", label:"M", semitone:11},
-    {code:"Comma", label:",", semitone:12},
-    {code:"KeyL", label:"L", semitone:13},
-    {code:"Period", label:".", semitone:14},
-    {code:"Semicolon", label:";", semitone:15},
-    {code:"Slash", label:"/", semitone:16},
-    {code:"KeyQ", label:"Q", semitone:12},
-    {code:"Key2", label:"2", semitone:13},
-    {code:"KeyW", label:"W", semitone:14},
-    {code:"Key3", label:"3", semitone:15},
-    {code:"KeyE", label:"E", semitone:16}
-  ];
-  const WHITE_SEMITONES = [0,2,4,5,7,9,11,12,14,16];
-  const BLACK_SEMITONES = [1,3,6,8,10,13,15];
-  const BLACK_TO_WHITE_INDEX = {1:0,3:1,6:3,8:4,10:5,13:7,15:8};
-
-  const DEGREE_FUNCTIONS = {
-    1:{code:"tonic", label:"T", name:"トニック"},
-    2:{code:"subdom", label:"SD", name:"サブドミナント"},
-    3:{code:"tonic", label:"T", name:"トニック"},
-    4:{code:"subdom", label:"SD", name:"サブドミナント"},
-    5:{code:"dominant", label:"D", name:"ドミナント"},
-    6:{code:"tonic", label:"T", name:"トニック"},
-    7:{code:"dominant", label:"D", name:"ドミナント"}
-  };
-  const SECONDARY_INFO = {label:"SecD", name:"セカンダリードミナント"};
-  function midiToHz(m){
-    return 440 * Math.pow(2,(m-69)/12);
-  }
-
-  function buildScale(keyIndex, mode, minorOpt){
-    let steps = mode === "major" ? SCALE_MAJOR : SCALE_MINOR_NAT;
-    if(mode !== "major" && minorOpt === "harmV"){
-      steps = SCALE_MINOR_HARM;
-    }
-    return {tonic:keyIndex, steps};
-  }
-
-  function chordIntervalsByStack(d, steps, want7th){
-    const triad = [0,2,4].map(k => {
-      const idx = (d + k) % 7;
-      const wrap = (d + k) >= 7 ? 12 : 0;
-      return steps[idx] + wrap;
-    });
-    if(!want7th) return triad;
-    const idx = (d + 6) % 7;
-    const wrap = (d + 6) >= 7 ? 12 : 0;
-    return triad.concat(steps[idx] + wrap);
-  }
-
-  function addNinth(intervals, d, steps){
-    const idx = (d + 1) % 7;
-    const wrap = (d + 1) >= 7 ? 12 : 0;
-    const ninth = steps[idx] + wrap + 12;
-    return intervals.concat(ninth);
-  }
-
-  function secondaryDominantIntervals(want7th, want9th){
-    const ivals = [0,4,7];
-    if(want7th){
-      ivals.push(10);
-    }
-    if(want9th){
-      ivals.push(14);
-    }
-    return ivals;
-  }
-
-  function romanNumeral(d, mode, minorOpt, has7th, has9th){
-    const MAJOR = ["I","ii","iii","IV","V","vi","vii°"];
-    const MINOR = ["i","ii°","III","iv","v","VI","VII"];
-    const table = mode === "major" ? MAJOR.slice() : MINOR.slice();
-    if(mode !== "major" && minorOpt === "harmV"){
-      table[4] = "V";
-      table[6] = "vii°";
-    }
-    let rn = table[d];
-    if(has7th && rn.includes("°")){
-      rn = rn.replace("°","ø");
-    }
-    let tag = "";
-    if(has7th) tag = "7";
-    if(has9th) tag = tag ? `${tag},9` : "9";
-    return tag ? `${rn} (${tag})` : rn;
-  }
-
-  const AudioSynth = {
-    ctx:null,
-    master:null,
-    active:new Map(),
-    adsr:{a:0.01,d:0.12,s:0.7,r:0.22},
-    ensure(){
-      if(!this.ctx){
-        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        this.master = this.ctx.createGain();
-        this.master.gain.value = 0.2;
-        this.master.connect(this.ctx.destination);
-      }
-      return this.ctx;
-    },
-    voice(freq, wave){
-      const osc = this.ctx.createOscillator();
-      osc.type = wave;
-      osc.frequency.value = freq;
-      const gain = this.ctx.createGain();
-      gain.gain.value = 0;
-      osc.connect(gain);
-      gain.connect(this.master);
-      return {osc, gain};
-    },
-    play(id, midiNotes, opts={}){
-      this.ensure();
-      if(this.ctx.state === "suspended"){
-        this.ctx.resume().catch(()=>{});
-      }
-      this.stop(id);
-      const wave = opts.wave || "triangle";
-      const arp = !!opts.arp;
-      const strum = Math.max(0, opts.strumMs|0) / 1000;
-      const startTime = this.ctx.currentTime;
-      const nodes = [];
-      midiNotes.forEach((m,i)=>{
-        const {osc, gain} = this.voice(midiToHz(m), wave);
-        const offset = arp ? i * 0.07 : i * strum;
-        osc.start(startTime + offset);
-        const a = startTime + offset;
-        const peak = a + this.adsr.a;
-        const decay = peak + this.adsr.d;
-        gain.gain.cancelScheduledValues(0);
-        gain.gain.setValueAtTime(0, a);
-        gain.gain.linearRampToValueAtTime(1, peak);
-        gain.gain.linearRampToValueAtTime(this.adsr.s, decay);
-        nodes.push({osc, gain});
-      });
-      const stop = (delay=0)=>{
-        const t = this.ctx.currentTime + delay;
-        nodes.forEach(({osc, gain})=>{
-          gain.gain.cancelScheduledValues(0);
-          gain.gain.setValueAtTime(gain.gain.value, t);
-          gain.gain.linearRampToValueAtTime(0.0001, t + this.adsr.r);
-          osc.stop(t + this.adsr.r + 0.02);
-        });
-      };
-      this.active.set(id, {nodes, stop});
-      return {stop};
-    },
-    playChord(id, midiNotes, opts={}){
-      return this.play(id, midiNotes, opts);
-    },
-    playNote(id, midi, opts={}){
-      return this.play(id, [midi], Object.assign({strumMs:0, arp:false}, opts));
-    },
-    stop(id){
-      const handle = this.active.get(id);
-      if(handle){
-        try{handle.stop(0);}catch(e){}
-        this.active.delete(id);
-      }
-    },
-    stopAll(){
-      for(const [,handle] of this.active.entries()){
-        try{handle.stop(0);}catch(e){}
-      }
-      this.active.clear();
-    }
-  };
-  const keySel = document.getElementById("keySel");
-  const modeSel = document.getElementById("modeSel");
-  const minorOpt = document.getElementById("minorOpt");
-  const invSel = document.getElementById("invSel");
-  const octInput = document.getElementById("octInput");
-  const waveSel = document.getElementById("waveSel");
-  const strumMs = document.getElementById("strumMs");
-  const btn7 = document.getElementById("btn7");
-  const btn9 = document.getElementById("btn9");
-  const btnLatch = document.getElementById("btnLatch");
-  const btnArp = document.getElementById("btnArp");
-  const degreeContainer = document.getElementById("degreeButtons");
-  const lastEl = document.getElementById("last");
-  const romanEl = document.getElementById("roman");
-  const hintEl = document.getElementById("hint");
-  const pianoKeysEl = document.getElementById("pianoKeys");
-  const noteDisplay = document.getElementById("noteDisplay");
-
-  KEY_NAMES.forEach((name, idx)=>{
-    const opt = document.createElement("option");
-    opt.value = String(idx);
-    opt.textContent = name;
-    keySel.appendChild(opt);
-  });
-  keySel.value = "0";
-
-  const state = {
-    keyIndex:0,
-    mode:"major",
-    minorOpt:"nat",
-    inversion:0,
-    baseOct:4,
-    wave:"triangle",
-    strum:15,
-    seventh:false,
-    ninth:false,
-    latch:false,
-    arp:false
-  };
-
-  const activeDegrees = new Set();
-  const activeSecondaries = new Set();
-  const degreeButtons = new Map();
-  const secondaryButtons = new Map();
-  const pressedChordKeys = new Map();
-  const secondaryModifierCodes = new Set(["IntlYen","Backslash"]);
-  let secondaryModifierActive = false;
-  const chordKeyMap = new Map([
-    ["Numpad1",1],["Numpad2",2],["Numpad3",3],
-    ["Numpad4",4],["Numpad5",5],["Numpad6",6],["Numpad7",7],
-    ["Digit1",1],["Digit2",2],["Digit3",3],
-    ["Digit4",4],["Digit5",5],["Digit6",6],["Digit7",7]
-  ]);
-
-  const keyboardToSemitone = new Map();
-  const semitoneLabels = new Map();
-  KEYBOARD_BINDINGS.forEach(({code,label,semitone})=>{
-    keyboardToSemitone.set(code, semitone);
-    if(!semitoneLabels.has(semitone)){
-      semitoneLabels.set(semitone, []);
-    }
-    semitoneLabels.get(semitone).push(label);
-  });
-
-  const semitoneData = new Map();
-  const noteActiveCounts = new Map();
-  const activeNotes = new Map();
-  const pointerTokens = new Map();
-
-  function ensureSynth(){
-    const ctx = AudioSynth.ensure();
-    if(ctx && ctx.state === "suspended"){
-      ctx.resume().catch(()=>{});
-    }
-  }
-
-  function midiFromSemitone(semi){
-    return 12 * (state.baseOct + 1) + semi;
-  }
-
-  function midiToLabel(midi){
-    const name = NOTE_NAMES[midi % 12];
-    const oct = Math.floor(midi / 12) - 1;
-    return `${name}${oct}`;
-  }
-
-  function noteNameForSemitone(semi){
-    return midiToLabel(midiFromSemitone(semi));
-  }
-
-  function updateSemitoneVisual(semitone){
-    const data = semitoneData.get(semitone);
-    if(!data) return;
-    const active = (noteActiveCounts.get(semitone) || 0) > 0;
-    data.element.classList.toggle("active", active);
-    data.noteEl.textContent = active ? midiToLabel(midiFromSemitone(semitone)) : noteNameForSemitone(semitone);
-  }
-
-  function updateNoteDisplay(){
-    if(noteActiveCounts.size === 0){
-      noteDisplay.textContent = "--";
-      return;
-    }
-    const names = Array.from(noteActiveCounts.keys())
-      .sort((a,b)=>a-b)
-      .map(semi => midiToLabel(midiFromSemitone(semi)));
-    noteDisplay.textContent = names.join(" / ");
-  }
-  function startNote(semitone, token){
-    if(activeNotes.has(token)) return;
-    ensureSynth();
-    syncStateFromInputs();
-    const midi = midiFromSemitone(semitone);
-    AudioSynth.playNote(token, midi, {wave:state.wave});
-    activeNotes.set(token, {semitone});
-    noteActiveCounts.set(semitone, (noteActiveCounts.get(semitone) || 0) + 1);
-    updateSemitoneVisual(semitone);
-    updateNoteDisplay();
-  }
-
-  function stopNote(token){
-    const info = activeNotes.get(token);
-    if(!info) return;
-    AudioSynth.stop(token);
-    activeNotes.delete(token);
-    const semitone = info.semitone;
-    const next = (noteActiveCounts.get(semitone) || 1) - 1;
-    if(next <= 0){
-      noteActiveCounts.delete(semitone);
-    }else{
-      noteActiveCounts.set(semitone, next);
-    }
-    updateSemitoneVisual(semitone);
-    updateNoteDisplay();
-  }
-
-  function attachPointerHandlers(btn, semitone){
-    btn.addEventListener("pointerdown", (ev)=>{
-      ev.preventDefault();
-      const token = `ptr-${ev.pointerId}-${semitone}`;
-      pointerTokens.set(ev.pointerId, {token, semitone});
-      startNote(semitone, token);
-      try{ btn.setPointerCapture(ev.pointerId); }catch(_){}
-    });
-    const endPointer = (ev)=>{
-      const info = pointerTokens.get(ev.pointerId);
-      if(!info) return;
-      stopNote(info.token);
-      pointerTokens.delete(ev.pointerId);
-      try{ btn.releasePointerCapture(ev.pointerId); }catch(_){}
-    };
-    btn.addEventListener("pointerup", endPointer);
-    btn.addEventListener("pointerleave", endPointer);
-    btn.addEventListener("pointercancel", endPointer);
-  }
-
-  const pianoInner = document.createElement("div");
-  pianoInner.className = "piano-inner";
-  pianoKeysEl.appendChild(pianoInner);
-
-  const WHITE_KEY_WIDTH = 60;
-  const WHITE_KEY_GAP = 6;
-  const BLACK_KEY_WIDTH = 36;
-  const BLACK_KEY_HEIGHT = 116;
-  const PADDING = 6;
-
-  const whiteCount = WHITE_SEMITONES.length;
-  const innerWidth = PADDING * 2 + whiteCount * WHITE_KEY_WIDTH + (whiteCount - 1) * WHITE_KEY_GAP;
-  pianoInner.style.width = `${innerWidth}px`;
-
-  function createPianoKey(semitone, type, left, width, height){
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = `piano-key ${type}`;
-    btn.dataset.semitone = String(semitone);
-    btn.style.left = `${left}px`;
-    btn.style.width = `${width}px`;
-    if(height != null){
-      btn.style.height = `${height}px`;
-    }
-    const labels = semitoneLabels.get(semitone) || [];
-    const labelSpan = document.createElement("span");
-    labelSpan.className = "label";
-    labelSpan.textContent = labels.join(" / ");
-    const noteSpan = document.createElement("span");
-    noteSpan.className = "note";
-    noteSpan.textContent = noteNameForSemitone(semitone);
-    btn.append(labelSpan, noteSpan);
-    pianoInner.appendChild(btn);
-    semitoneData.set(semitone, {element:btn, noteEl:noteSpan, labelEl:labelSpan});
-    attachPointerHandlers(btn, semitone);
-    return btn;
-  }
-
-  WHITE_SEMITONES.forEach((semi, index)=>{
-    const left = PADDING + index * (WHITE_KEY_WIDTH + WHITE_KEY_GAP);
-    createPianoKey(semi, "white", left, WHITE_KEY_WIDTH, null);
-  });
-
-  BLACK_SEMITONES.forEach(semi=>{
-    const precedingIndex = BLACK_TO_WHITE_INDEX[semi];
-    if(precedingIndex === undefined) return;
-    const baseLeft = PADDING + precedingIndex * (WHITE_KEY_WIDTH + WHITE_KEY_GAP);
-    const center = baseLeft + WHITE_KEY_WIDTH + (WHITE_KEY_GAP / 2);
-    const left = center - (BLACK_KEY_WIDTH / 2);
-    createPianoKey(semi, "black", left, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT).style.zIndex = "5";
-  });
-  function setDegreeActive(deg, active){
-    const entry = degreeButtons.get(deg);
-    if(entry && entry.button){
-      entry.button.classList.toggle("active", active);
-    }
-    if(active){
-      activeDegrees.add(deg);
-    }else{
-      activeDegrees.delete(deg);
-    }
-  }
-
-  function setSecondaryActive(deg, active){
-    const entry = secondaryButtons.get(deg);
-    if(entry && entry.button){
-      entry.button.classList.toggle("active", active);
-    }
-    if(active){
-      activeSecondaries.add(deg);
-    }else{
-      activeSecondaries.delete(deg);
-    }
-  }
-
-  function syncStateFromInputs(){
-    state.keyIndex = Number(keySel.value);
-    state.mode = modeSel.value;
-    state.minorOpt = minorOpt.value;
-    state.inversion = Number(invSel.value);
-    state.baseOct = Math.max(2, Math.min(6, Number(octInput.value) || 4));
-    state.wave = waveSel.value;
-    state.strum = Math.max(0, Number(strumMs.value) || 0);
-  }
-
-  function applyUI(){
-    syncStateFromInputs();
-    updateKeyNoteLabels();
-    updateDegreeLabels();
-  }
-
-  function updateToggles(){
-    btn7.setAttribute("aria-pressed", String(state.seventh));
-    btn9.setAttribute("aria-pressed", String(state.ninth));
-    btnLatch.setAttribute("aria-pressed", String(state.latch));
-    btnArp.setAttribute("aria-pressed", String(state.arp));
-  }
-
-  function formatChordName(rootName, normalized){
-    const triad = normalized.slice(0,3);
-    let triadType = "major";
-    if(triad[1] === 3 && triad[2] === 7){
-      triadType = "minor";
-    }else if(triad[1] === 3 && triad[2] === 6){
-      triadType = "diminished";
-    }else if(triad[1] === 4 && triad[2] === 8){
-      triadType = "augmented";
-    }
-    let suffix = "";
-    if(triadType === "minor"){
-      suffix = "m";
-    }else if(triadType === "diminished"){
-      suffix = "dim";
-    }else if(triadType === "augmented"){
-      suffix = "aug";
-    }
-    if(state.seventh && normalized.length >= 4){
-      const seventh = normalized[3];
-      if(triadType === "major"){
-        if(seventh === 11){
-          suffix = suffix ? suffix + "maj7" : "maj7";
-        }else if(seventh === 10){
-          suffix = suffix ? suffix + "7" : "7";
-        }else{
-          suffix = suffix ? suffix + `(${seventh})` : `7(${seventh})`;
-        }
-      }else if(triadType === "minor"){
-        if(seventh === 10){
-          suffix = suffix === "m" ? "m7" : suffix + "7";
-        }else if(seventh === 11){
-          suffix = suffix === "m" ? "m(maj7)" : suffix + "(maj7)";
-        }else{
-          suffix = suffix + `(7${seventh})`;
-        }
-      }else if(triadType === "diminished"){
-        if(seventh === 10){
-          suffix = "m7b5";
-        }else if(seventh === 9){
-          suffix = "dim7";
-        }else{
-          suffix = suffix + "7";
-        }
-      }else{
-        if(seventh === 11){
-          suffix = suffix ? suffix + "maj7" : "maj7";
-        }else if(seventh === 10){
-          suffix = suffix ? suffix + "7" : "7";
-        }else{
-          suffix = suffix + "7";
-        }
-      }
-    }
-    if(state.ninth){
-      const ninth = normalized[state.seventh ? 4 : 3];
-      if(state.seventh){
-        if(triadType === "major"){
-          if(/maj7$/.test(suffix)){
-            suffix = suffix.replace(/maj7$/, "maj9");
-          }else if(/7$/.test(suffix)){
-            suffix = suffix.replace(/7$/, "9");
-          }else if(!suffix){
-            suffix = "9";
-          }else{
-            suffix += "(9)";
-          }
-        }else if(triadType === "minor"){
-          if(/m7$/.test(suffix)){
-            suffix = suffix.replace(/m7$/, "m9");
-          }else if(/\(maj7\)$/.test(suffix)){
-            suffix = suffix.replace("(maj7)", "(maj9)");
-          }else if(/7$/.test(suffix)){
-            suffix = suffix.replace(/7$/, "9");
-          }else if(!suffix){
-            suffix = "9";
-          }else{
-            suffix += "(9)";
-          }
-        }else if(triadType === "diminished"){
-          if(suffix === "m7b5"){
-            suffix = "m9b5";
-          }else if(suffix === "dim7"){
-            suffix = "dim7(9)";
-          }else if(/7$/.test(suffix)){
-            suffix = suffix.replace(/7$/, "9");
-          }else{
-            suffix += "(9)";
-          }
-        }else{
-          if(/maj7$/.test(suffix)){
-            suffix = suffix.replace(/maj7$/, "maj9");
-          }else if(/7$/.test(suffix)){
-            suffix = suffix.replace(/7$/, "9");
-          }else if(!suffix){
-            suffix = "9";
-          }else{
-            suffix += "(9)";
-          }
-        }
-      }else{
-        if(triadType === "major"){
-          suffix = suffix ? suffix + "add9" : "add9";
-        }else if(triadType === "minor"){
-          if(suffix === "m"){
-            suffix = "m(add9)";
-          }else{
-            suffix += "(add9)";
-          }
-        }else if(triadType === "diminished"){
-          if(suffix === "dim"){
-            suffix = "dim(add9)";
-          }else{
-            suffix += "(add9)";
-          }
-        }else{
-          suffix += "(add9)";
-        }
-      }
-    }
-    return suffix ? `${rootName}${suffix}` : rootName;
-  }
-
-  function secondaryDominantData(scale, deg){
-    const d = deg - 1;
-    const targetSemi = (state.keyIndex + scale.steps[d]) % 12;
-    const rootSemi = (targetSemi + 7) % 12;
-    const ivals = secondaryDominantIntervals(state.seventh, state.ninth);
-    const normalized = ivals.map(v => (v - ivals[0] + 120) % 12);
-    const rootName = NOTE_NAMES[rootSemi];
-    const chordName = formatChordName(rootName, normalized);
-    const targetRoman = romanNumeral(d, state.mode, state.minorOpt, false, false);
-    const roman = `V/${targetRoman}`;
-    return {rootSemi, ivals, normalized, chordName, roman, targetRoman};
-  }
-
-  function updateDegreeLabels(){
-    const scale = buildScale(state.keyIndex, state.mode, state.minorOpt);
-    degreeButtons.forEach((entry, deg)=>{
-      const d = deg - 1;
-      let ivals = chordIntervalsByStack(d, scale.steps, state.seventh);
-      if(state.ninth){
-        ivals = addNinth(ivals, d, scale.steps);
-      }
-      const normalized = ivals.map(v => (v - ivals[0] + 120) % 12);
-      const rootSemi = (state.keyIndex + scale.steps[d]) % 12;
-      const rootName = NOTE_NAMES[rootSemi];
-      const chordName = formatChordName(rootName, normalized);
-      const roman = romanNumeral(d, state.mode, state.minorOpt, state.seventh, state.ninth);
-      entry.romanEl.textContent = roman;
-      entry.nameEl.textContent = chordName;
-      entry.button.setAttribute("aria-label", `${roman} ${chordName} ${entry.funcInfo.name}`);
-    });
-    updateSecondaryLabels(scale);
-  }
-
-  function updateSecondaryLabels(scale){
-    secondaryButtons.forEach((entry, deg)=>{
-      const info = secondaryDominantData(scale, deg);
-      entry.romanEl.textContent = info.roman;
-      entry.nameEl.textContent = info.chordName;
-      entry.button.setAttribute("aria-label", `${info.roman} ${info.chordName} ${SECONDARY_INFO.name}`);
-    });
-  }
-
-  function handleChordPress(deg){
-    if(state.latch && activeDegrees.has(deg)){
-      AudioSynth.stop(`deg${deg}`);
-      setDegreeActive(deg, false);
-      return;
-    }
-    ensureSynth();
-    syncStateFromInputs();
-    const scale = buildScale(state.keyIndex, state.mode, state.minorOpt);
-    const d = deg - 1;
-    let ivals = chordIntervalsByStack(d, scale.steps, state.seventh);
-    if(state.ninth){
-      ivals = addNinth(ivals, d, scale.steps);
-    }
-    const tonicMidi = 12 * (state.baseOct + 1) + state.keyIndex;
-    let midiNotes = ivals.map(v => tonicMidi + v);
-    const inv = Math.min(state.seventh ? 3 : 2, state.inversion);
-    for(let i=0; i<inv; i++){
-      midiNotes[0] += 12;
-      midiNotes.push(midiNotes.shift());
-    }
-    midiNotes = midiNotes.map(m => (m < 45 ? m + 12 : m));
-    AudioSynth.playChord(`deg${deg}`, midiNotes, {
-      wave:state.wave,
-      strumMs:state.strum,
-      arp:state.arp
-    });
-    setDegreeActive(deg, true);
-    const normalized = ivals.map(v => (v - ivals[0] + 120) % 12);
-    const rootSemi = (state.keyIndex + scale.steps[d]) % 12;
-    const rootName = NOTE_NAMES[rootSemi];
-    const chordName = formatChordName(rootName, normalized);
-    const roman = romanNumeral(d, state.mode, state.minorOpt, state.seventh, state.ninth);
-    const funcInfo = DEGREE_FUNCTIONS[deg];
-    const pitchNames = midiNotes.map(m => NOTE_NAMES[m % 12]);
-    lastEl.textContent = `${KEY_NAMES[state.keyIndex]} ${state.mode === "major" ? "Major" : "Minor"} ▶ ${chordName} (${pitchNames.join(" ")}) [${funcInfo.label}]`;
-    hintEl.textContent = `Voicing ${["Root","1st","2nd","3rd"][state.inversion] || "Root"} / ${state.wave} / ${state.arp ? "Arp" : "Block"} / 機能 ${funcInfo.name} (${funcInfo.label})${state.seventh ? " +7" : ""}${state.ninth ? " +9" : ""}`;
-    romanEl.textContent = roman;
-  }
-
-  function handleChordRelease(deg){
-    if(state.latch) return;
-    AudioSynth.stop(`deg${deg}`);
-    setDegreeActive(deg, false);
-  }
-
-  function handleSecondaryPress(deg){
-    if(state.latch && activeSecondaries.has(deg)){
-      AudioSynth.stop(`sec${deg}`);
-      setSecondaryActive(deg, false);
-      return;
-    }
-    ensureSynth();
-    syncStateFromInputs();
-    const scale = buildScale(state.keyIndex, state.mode, state.minorOpt);
-    const info = secondaryDominantData(scale, deg);
-    const baseMidi = 12 * (state.baseOct + 1) + info.rootSemi;
-    let midiNotes = info.ivals.map(v => baseMidi + v);
-    const inv = Math.min(info.ivals.length - 1, state.inversion);
-    for(let i=0; i<inv; i++){
-      midiNotes[0] += 12;
-      midiNotes.push(midiNotes.shift());
-    }
-    midiNotes = midiNotes.map(m => (m < 45 ? m + 12 : m));
-    AudioSynth.playChord(`sec${deg}`, midiNotes, {
-      wave:state.wave,
-      strumMs:state.strum,
-      arp:state.arp
-    });
-    setSecondaryActive(deg, true);
-    const funcInfo = SECONDARY_INFO;
-    const pitchNames = midiNotes.map(m => NOTE_NAMES[m % 12]);
-    lastEl.textContent = `${KEY_NAMES[state.keyIndex]} ${state.mode === "major" ? "Major" : "Minor"} ▶ ${info.chordName} (${pitchNames.join(" ")}) [${funcInfo.label}]`;
-    hintEl.textContent = `Voicing ${["Root","1st","2nd","3rd"][state.inversion] || "Root"} / ${state.wave} / ${state.arp ? "Arp" : "Block"} / 機能 ${funcInfo.name} (${funcInfo.label})${state.seventh ? " +7" : ""}${state.ninth ? " +9" : ""}`;
-    romanEl.textContent = info.roman;
-  }
-
-  function handleSecondaryRelease(deg){
-    if(state.latch) return;
-    AudioSynth.stop(`sec${deg}`);
-    setSecondaryActive(deg, false);
-  }
-
-  function updateKeyNoteLabels(){
-    for(const semitone of semitoneData.keys()){
-      updateSemitoneVisual(semitone);
-    }
-    updateNoteDisplay();
-  }
-  const DEG_ROMAN_BASE = ["I","II","III","IV","V","VI","VII"];
-  for(let deg=1; deg<=7; deg++){
-    const info = DEGREE_FUNCTIONS[deg];
-    const block = document.createElement("div");
-    block.className = "degree-block";
-    degreeContainer.appendChild(block);
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = `degree-btn func-${info.code}`;
-    btn.dataset.degree = String(deg);
-    const label = document.createElement("div");
-    label.className = "deg";
-    label.textContent = DEG_ROMAN_BASE[deg-1];
-    const name = document.createElement("div");
-    name.className = "deg-name";
-    name.textContent = "--";
-    const func = document.createElement("div");
-    func.className = "deg-func";
-    func.textContent = info.label;
-    btn.append(label, name, func);
-    block.appendChild(btn);
-    degreeButtons.set(deg, {button:btn, romanEl:label, nameEl:name, funcEl:func, funcInfo:info});
-
-    const secBtn = document.createElement("button");
-    secBtn.type = "button";
-    secBtn.className = "secondary-btn func-dominant";
-    const secRoman = document.createElement("div");
-    secRoman.className = "sec-roman";
-    secRoman.textContent = "V/" + DEG_ROMAN_BASE[deg-1];
-    const secName = document.createElement("div");
-    secName.className = "sec-name";
-    secName.textContent = "--";
-    secBtn.append(secRoman, secName);
-    block.appendChild(secBtn);
-    secondaryButtons.set(deg, {button:secBtn, romanEl:secRoman, nameEl:secName});
-
-    btn.addEventListener("pointerdown", (ev)=>{
-      ev.preventDefault();
-      handleChordPress(deg);
-      try{ btn.setPointerCapture(ev.pointerId); }catch(_){}
-    });
-    const releasePrimary = ()=>{
-      handleChordRelease(deg);
-    };
-    btn.addEventListener("pointerup", releasePrimary);
-    btn.addEventListener("pointerleave", releasePrimary);
-    btn.addEventListener("pointercancel", releasePrimary);
-
-    secBtn.addEventListener("pointerdown", (ev)=>{
-      ev.preventDefault();
-      handleSecondaryPress(deg);
-      try{ secBtn.setPointerCapture(ev.pointerId); }catch(_){}
-    });
-    const releaseSecondary = ()=>{
-      handleSecondaryRelease(deg);
-    };
-    secBtn.addEventListener("pointerup", releaseSecondary);
-    secBtn.addEventListener("pointerleave", releaseSecondary);
-    secBtn.addEventListener("pointercancel", releaseSecondary);
-  }
-
-  keySel.addEventListener("change", applyUI);
-  modeSel.addEventListener("change", applyUI);
-  minorOpt.addEventListener("change", applyUI);
-  invSel.addEventListener("change", applyUI);
-  octInput.addEventListener("change", applyUI);
-  waveSel.addEventListener("change", applyUI);
-  strumMs.addEventListener("change", applyUI);
-
-  btn7.addEventListener("click", ()=>{
-    state.seventh = !state.seventh;
-    updateToggles();
-    updateDegreeLabels();
-  });
-  btn9.addEventListener("click", ()=>{
-    state.ninth = !state.ninth;
-    updateToggles();
-    updateDegreeLabels();
-  });
-  btnLatch.addEventListener("click", ()=>{
-    state.latch = !state.latch;
-    updateToggles();
-  });
-  btnArp.addEventListener("click", ()=>{
-    state.arp = !state.arp;
-    updateToggles();
-  });
-  window.addEventListener("keydown", (ev)=>{
-    if(ev.repeat) return;
-    if(secondaryModifierCodes.has(ev.code)){
-      secondaryModifierActive = true;
-      ev.preventDefault();
-      return;
-    }
-    if(chordKeyMap.has(ev.code)){
-      const deg = chordKeyMap.get(ev.code);
-      const type = secondaryModifierActive ? "secondary" : "primary";
-      pressedChordKeys.set(ev.code, {type, deg});
-      if(type === "secondary"){
-        handleSecondaryPress(deg);
-      }else{
-        handleChordPress(deg);
-      }
-      ev.preventDefault();
-      return;
-    }
-    if(keyboardToSemitone.has(ev.code)){
-      const token = `kbd-${ev.code}`;
-      startNote(keyboardToSemitone.get(ev.code), token);
-      ev.preventDefault();
-      return;
-    }
-    switch(ev.code){
-      case "NumpadAdd":
-        keySel.value = String((Number(keySel.value) + 1) % KEY_NAMES.length);
-        applyUI();
-        ev.preventDefault();
-        break;
-      case "NumpadSubtract":
-        keySel.value = String((Number(keySel.value) + KEY_NAMES.length - 1) % KEY_NAMES.length);
-        applyUI();
-        ev.preventDefault();
-        break;
-      case "NumpadMultiply":{
-        const waves = ["triangle","sawtooth","square","sine"];
-        const idx = waves.indexOf(state.wave);
-        const next = waves[(idx + 1) % waves.length];
-        state.wave = next;
-        waveSel.value = next;
-        ev.preventDefault();
-        break;
-      }
-      case "NumpadDivide":
-        invSel.value = String((Number(invSel.value) + 1) % 4);
-        applyUI();
-        ev.preventDefault();
-        break;
-      case "NumpadEnter":
-        state.latch = !state.latch;
-        updateToggles();
-        ev.preventDefault();
-        break;
-      case "NumpadDecimal":
-        state.arp = !state.arp;
-        updateToggles();
-        ev.preventDefault();
-        break;
-      case "Numpad8":
-        state.seventh = !state.seventh;
-        updateToggles();
-        updateDegreeLabels();
-        ev.preventDefault();
-        break;
-      case "Numpad9":
-        state.ninth = !state.ninth;
-        updateToggles();
-        updateDegreeLabels();
-        ev.preventDefault();
-        break;
-      case "Digit0":
-      case "Numpad0":
-        state.mode = state.mode === "major" ? "minor" : "major";
-        modeSel.value = state.mode;
-        applyUI();
-        ev.preventDefault();
-        break;
-      case "ArrowUp":
-        state.baseOct = Math.min(6, state.baseOct + 1);
-        octInput.value = String(state.baseOct);
-        updateKeyNoteLabels();
-        ev.preventDefault();
-        break;
-      case "ArrowDown":
-        state.baseOct = Math.max(2, state.baseOct - 1);
-        octInput.value = String(state.baseOct);
-        updateKeyNoteLabels();
-        ev.preventDefault();
-        break;
-      default:
-        break;
-    }
-  });
-
-  window.addEventListener("keyup", (ev)=>{
-    if(secondaryModifierCodes.has(ev.code)){
-      secondaryModifierActive = false;
-      ev.preventDefault();
-      return;
-    }
-    if(pressedChordKeys.has(ev.code)){
-      const info = pressedChordKeys.get(ev.code);
-      pressedChordKeys.delete(ev.code);
-      if(info.type === "secondary"){
-        handleSecondaryRelease(info.deg);
-      }else{
-        handleChordRelease(info.deg);
-      }
-    }
-    if(keyboardToSemitone.has(ev.code)){
-      stopNote(`kbd-${ev.code}`);
-    }
-  });
-
-  window.addEventListener("blur", ()=>{
-    secondaryModifierActive = false;
-    for(const info of pressedChordKeys.values()){
-      if(info.type === "secondary"){
-        handleSecondaryRelease(info.deg);
-      }else{
-        handleChordRelease(info.deg);
-      }
-    }
-    pressedChordKeys.clear();
-    for(const token of Array.from(activeNotes.keys())){
-      stopNote(token);
-    }
-    pointerTokens.clear();
-  });
-
-  window.addEventListener("beforeunload", ()=>{
-    AudioSynth.stopAll();
-  });
-
-  applyUI();
-  updateToggles();
-})();
-</script>
-</body>
-</html>
+diff --git a//dev/null b/セカンダリードミナントに対応したコード進行がわかるやーつ.html
+index 0000000000000000000000000000000000000000..28cfdc21c750e04c3238b4881faa21749006b9dc 100644
+--- a//dev/null
++++ b/セカンダリードミナントに対応したコード進行がわかるやーつ.html
+@@ -0,0 +1,1318 @@
++﻿<!doctype html>
++<html lang="ja">
++<head>
++<meta charset="utf-8" />
++<meta name="viewport" content="width=device-width, initial-scale=1" />
++<title>シン・耳コピ支援</title>
++<style>
++  :root{
++    --bg:#0b0f14;
++    --fg:#e9f1ff;
++    --muted:#9fb0c3;
++    --accent:#7bdcff;
++    --panel:#111823;
++    --ok:#75f094;
++    --tonic-bg:#14532d;
++    --tonic-border:#22c55e;
++    --tonic-text:#ecfdf5;
++    --subdom-bg:#7a5207;
++    --subdom-border:#facc15;
++    --subdom-text:#fef3c7;
++    --dom-bg:#7f1d1d;
++    --dom-border:#f87171;
++    --dom-text:#fee2e2;
++    --key-white:#f8fbff;
++    --key-black:#1f2734;
++    --key-active:#7bdcff44;
++  }
++  html,body{height:100%;}
++  body{
++    margin:0;
++    background:var(--bg);
++    color:var(--fg);
++    font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans",Meiryo,sans-serif;
++  }
++  .wrap{
++    max-width:980px;
++    margin:24px auto;
++    padding:0 18px 48px;
++  }
++  h1{
++    font-size:24px;
++    margin:0 0 16px;
++  }
++  .panel{
++    background:var(--panel);
++    border:1px solid #1e2733;
++    border-radius:16px;
++    padding:16px 18px 20px;
++    box-shadow:0 12px 32px rgba(0,0,0,.35);
++    margin-top:18px;
++  }
++  .panel:first-of-type{margin-top:0;}
++  h2{
++    font-size:18px;
++    margin:0 0 12px;
++  }
++  .control-grid{
++    display:grid;
++    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
++    gap:14px;
++    margin-bottom:14px;
++  }
++  label{
++    display:flex;
++    flex-direction:column;
++    gap:6px;
++    font-size:12px;
++    color:var(--muted);
++  }
++  select, input[type="number"], button.btn, button.toggle, button.degree-btn{
++    font:inherit;
++  }
++  select, input[type="number"], button.btn{
++    background:#0f1622;
++    color:var(--fg);
++    border:1px solid #2a3a4f;
++    border-radius:10px;
++    padding:8px 10px;
++  }
++  input[type="number"]{width:72px;}
++  button.btn, button.toggle{
++    cursor:pointer;
++    transition:border .15s, background .15s;
++  }
++  button.toggle{
++    background:#0f1622;
++    border:1px solid #2a3a4f;
++    border-radius:10px;
++    padding:8px 12px;
++    color:var(--fg);
++  }
++  button.toggle[aria-pressed="true"]{
++    border-color:var(--ok);
++    box-shadow:0 0 0 2px rgba(117,240,148,0.25) inset;
++  }
++  .toggle-row{
++    display:flex;
++    flex-wrap:wrap;
++    gap:12px;
++    margin-bottom:14px;
++  }
++  .degree-grid{
++    display:grid;
++    grid-template-columns:repeat(5,minmax(120px,1fr));
++    justify-items:stretch;
++    gap:12px;
++  }
++  .degree-block{
++    display:flex;
++    flex-direction:column;
++    gap:8px;
++  }
++  .degree-btn{
++    border-radius:12px;
++    padding:14px 12px;
++    text-align:center;
++    cursor:pointer;
++    transition:border .18s, transform .18s, box-shadow .18s, filter .18s;
++    display:flex;
++    flex-direction:column;
++    align-items:center;
++    gap:6px;
++    min-height:104px;
++    color:var(--fg);
++    border:1px solid #2a3a4f;
++    background:#0f1622;
++  }
++  .degree-btn .deg{
++    font-size:20px;
++    letter-spacing:1px;
++  }
++  .degree-btn .deg-name{
++    font-size:16px;
++    font-weight:600;
++  }
++  .degree-btn .deg-func{
++    font-size:12px;
++    letter-spacing:1px;
++    text-transform:uppercase;
++    opacity:0.85;
++  }
++  .degree-btn:focus-visible{
++    outline:2px solid var(--accent);
++    outline-offset:2px;
++  }
++  .degree-btn.active{
++    transform:translateY(-2px);
++    box-shadow:0 6px 18px rgba(0,0,0,0.35);
++    filter:brightness(1.08);
++  }
++  .secondary-btn{
++    border-radius:10px;
++    padding:8px 10px;
++    text-align:center;
++    cursor:pointer;
++    transition:border .18s, transform .18s, box-shadow .18s, filter .18s;
++    display:flex;
++    flex-direction:column;
++    gap:4px;
++    min-height:38px;
++    color:var(--fg);
++    border:1px solid #2a3a4f;
++    background:#0f1622;
++    font-size:12px;
++  }
++  .secondary-btn .sec-roman{
++    font-size:14px;
++    letter-spacing:0.5px;
++    color:var(--accent);
++  }
++  .secondary-btn .sec-name{
++    font-size:12px;
++    color:var(--muted);
++  }
++  .secondary-btn:focus-visible{
++    outline:2px solid var(--accent);
++    outline-offset:2px;
++  }
++  .secondary-btn.active{
++    transform:translateY(-1px);
++    box-shadow:0 4px 14px rgba(0,0,0,0.32);
++    filter:brightness(1.06);
++  }
++  .degree-btn.func-tonic{
++    background:var(--tonic-bg);
++    border-color:var(--tonic-border);
++    color:var(--tonic-text);
++  }
++  .degree-btn.func-tonic .deg-func{color:#bbf7d0;}
++  .degree-btn.func-subdom{
++    background:var(--subdom-bg);
++    border-color:var(--subdom-border);
++    color:var(--subdom-text);
++  }
++  .degree-btn.func-subdom .deg-func{color:#fde68a;}
++  .degree-btn.func-dominant{
++    background:var(--dom-bg);
++    border-color:var(--dom-border);
++    color:var(--dom-text);
++  }
++  .degree-btn.func-dominant .deg-func{color:#fecaca;}
++  .secondary-btn.func-dominant{
++    background:var(--dom-bg);
++    border-color:var(--dom-border);
++    color:var(--dom-text);
++  }
++  .secondary-btn.func-dominant .sec-roman{color:#fecaca;}
++  .secondary-btn.func-dominant .sec-name{color:#fca5a5;}
++  .status{
++    margin-top:16px;
++    display:flex;
++    flex-direction:column;
++    gap:6px;
++  }
++  .roman{
++    font-size:24px;
++    letter-spacing:1px;
++    color:var(--accent);
++  }
++  .muted{color:var(--muted);}
++  .small{font-size:12px;}
++  .badge{
++    display:inline-block;
++    font-size:12px;
++    padding:2px 8px;
++    border-radius:999px;
++    border:1px solid #2a3a4f;
++    margin-left:8px;
++    color:var(--muted);
++  }
++  .kbd{
++    background:#0f1622;
++    border:1px solid #2a3a4f;
++    border-radius:6px;
++    padding:2px 6px;
++    font:12px/1.1 "SFMono-Regular","Consolas","Liberation Mono",monospace;
++    color:var(--muted);
++  }
++  .piano{
++    position:relative;
++    padding:18px 12px 24px;
++    background:#0f1622;
++    border-radius:12px;
++    border:1px solid #1f2b3c;
++    overflow-x:auto;
++  }
++  .piano-inner{
++    position:relative;
++    height:180px;
++    min-width:520px;
++  }
++  .piano-key{
++    position:absolute;
++    top:0;
++    display:flex;
++    flex-direction:column;
++    align-items:center;
++    justify-content:flex-end;
++    border-radius:0 0 8px 8px;
++    border:1px solid #1f2b3c;
++    cursor:pointer;
++    user-select:none;
++    transition:transform .12s ease, box-shadow .18s ease, filter .18s ease;
++    padding-bottom:12px;
++  }
++  .piano-key .label{
++    font-size:11px;
++    color:var(--muted);
++    margin-bottom:6px;
++  }
++  .piano-key .note{
++    font-size:12px;
++    font-weight:600;
++    color:var(--accent);
++  }
++  .piano-key.white{
++    height:100%;
++    background:linear-gradient(180deg,#fefefe 0%,#e6ecf7 70%,#ccd6e8 100%);
++    color:#0f1d33;
++    box-shadow:0 4px 10px rgba(0,0,0,0.35);
++    z-index:1;
++  }
++  .piano-key.black{
++    height:116px;
++    background:linear-gradient(180deg,#2a3548 0%,#101726 60%,#04070d 100%);
++    color:#eef6ff;
++    border-radius:0 0 6px 6px;
++    box-shadow:0 6px 16px rgba(0,0,0,0.55);
++    z-index:3;
++  }
++  .piano-key.black .label{color:#dce7ff;}
++  .piano-key.black .note{color:#8fd8ff;}
++  .piano-key.black.active{
++    box-shadow:0 0 0 2px rgba(123,220,255,0.5) inset,0 10px 26px rgba(123,220,255,0.35);
++  }
++  .piano-key.active{
++    box-shadow:0 0 0 2px rgba(123,220,255,0.4) inset,0 8px 22px rgba(123,220,255,0.25);
++    filter:brightness(1.05);
++  }
++  .note-readout{
++    margin-top:10px;
++    font-variant-numeric:tabular-nums;
++  }
++  .footer{
++    margin-top:24px;
++    text-align:center;
++    opacity:.75;
++  }
++  @media (max-width:720px){
++    .degree-grid{
++      grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
++    }
++  }
++  @media (max-width:680px){
++    .piano{padding:14px 8px 18px;}
++    .piano-inner{height:170px;}
++  }
++</style>
++</head>
++<body>
++<div class="wrap">
++  <h1>シン・耳コピ支援 <span class="badge">Function Colors</span></h1>
++  <div class="panel">
++    <h2>ダイアトニックコード</h2>
++    <div class="control-grid">
++      <label>Key
++        <select id="keySel"></select>
++      </label>
++      <label>Scale / Mode
++        <select id="modeSel">
++          <option value="major">Major (Ionian)</option>
++          <option value="minor">Minor (Natural)</option>
++        </select>
++      </label>
++      <label>Minor option
++        <select id="minorOpt">
++          <option value="nat">Natural minor</option>
++          <option value="harmV">Harmonic V</option>
++        </select>
++      </label>
++      <label>Voicing
++        <select id="invSel">
++          <option value="0">Root</option>
++          <option value="1">1st inv</option>
++          <option value="2">2nd inv</option>
++          <option value="3">3rd inv</option>
++        </select>
++      </label>
++      <label>Base Octave
++        <input id="octInput" type="number" min="2" max="6" step="1" value="4">
++      </label>
++      <label>Wave
++        <select id="waveSel">
++          <option value="triangle">triangle</option>
++          <option value="sawtooth">sawtooth</option>
++          <option value="square">square</option>
++          <option value="sine">sine</option>
++        </select>
++      </label>
++      <label>Strum (ms)
++        <input id="strumMs" type="number" min="0" max="80" step="5" value="15">
++      </label>
++    </div>
++    <div class="toggle-row">
++      <button type="button" id="btn7" class="toggle" aria-pressed="false">7th</button>
++      <button type="button" id="btn9" class="toggle" aria-pressed="false">add9 / 9th</button>
++      <button type="button" id="btnLatch" class="toggle" aria-pressed="false">ラッチ保持</button>
++      <button type="button" id="btnArp" class="toggle" aria-pressed="false">アルペジオ</button>
++    </div>
++    <div class="degree-grid" id="degreeButtons"></div>
++    <div class="status">
++      <div><span class="muted">Last:</span> <span id="last">--</span></div>
++      <div class="roman" id="roman"></div>
++      <div class="muted small" id="hint"></div>
++    </div>
++    <p class="muted small">
++      テンキー <span class="kbd">1-7</span> / 上段数字キーでもコードを再生できます。<span class="kbd">￥</span>（<span class="kbd">\</span>）と組み合わせると対応するセカンダリードミナントを鳴らせます。
++      <span class="kbd">+</span><span class="kbd">-</span> で調整、<span class="kbd">*</span> で波形、<span class="kbd">/</span> で転回、<span class="kbd">Enter</span> でラッチ切替、<span class="kbd">.</span> でアルペジオ、<span class="kbd">↑</span><span class="kbd">↓</span> でベースオクターブ変更。
++      色の目安: <span class="kbd" style="background:var(--tonic-bg);color:var(--tonic-text);border-color:var(--tonic-border);">T</span> トニック /
++      <span class="kbd" style="background:var(--subdom-bg);color:var(--subdom-text);border-color:var(--subdom-border);">SD</span> サブドミナント /
++      <span class="kbd" style="background:var(--dom-bg);color:var(--dom-text);border-color:var(--dom-border);">D</span> ドミナント。
++    </p>
++  </div>
++  <div class="panel">
++    <h2>簡易キーボード</h2>
++    <p class="muted small">Z〜M / , . / の下段キーと上段 QWERT の一部で 1 オクターブ半をカバーします。黒鍵は S D G H J L ; などに割り当て。画面の鍵盤もクリック・タッチで鳴らせます。</p>
++    <div class="piano" id="pianoKeys"></div>
++    <div class="note-readout muted small">現在: <span id="noteDisplay">--</span></div>
++  </div>
++
++  <div class="footer muted small">
++    ブラウザの音声を有効にするため、最初に鍵盤やコードボタンをクリックしてください。音が残った場合はラッチ解除またはタブのリロードで止められます。
++  </div>
++</div>
++<script>
++(() => {
++  const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
++  const KEY_NAMES = ["C","C# / Db","D","D# / Eb","E","F","F# / Gb","G","G# / Ab","A","A# / Bb","B"];
++  const SCALE_MAJOR = [0,2,4,5,7,9,11];
++  const SCALE_MINOR_NAT = [0,2,3,5,7,8,10];
++  const SCALE_MINOR_HARM = [0,2,3,5,7,8,11];
++
++  const KEYBOARD_BINDINGS = [
++    {code:"KeyZ", label:"Z", semitone:0},
++    {code:"KeyS", label:"S", semitone:1},
++    {code:"KeyX", label:"X", semitone:2},
++    {code:"KeyD", label:"D", semitone:3},
++    {code:"KeyC", label:"C", semitone:4},
++    {code:"KeyV", label:"V", semitone:5},
++    {code:"KeyG", label:"G", semitone:6},
++    {code:"KeyB", label:"B", semitone:7},
++    {code:"KeyH", label:"H", semitone:8},
++    {code:"KeyN", label:"N", semitone:9},
++    {code:"KeyJ", label:"J", semitone:10},
++    {code:"KeyM", label:"M", semitone:11},
++    {code:"Comma", label:",", semitone:12},
++    {code:"KeyL", label:"L", semitone:13},
++    {code:"Period", label:".", semitone:14},
++    {code:"Semicolon", label:";", semitone:15},
++    {code:"Slash", label:"/", semitone:16},
++    {code:"KeyQ", label:"Q", semitone:12},
++    {code:"Key2", label:"2", semitone:13},
++    {code:"KeyW", label:"W", semitone:14},
++    {code:"Key3", label:"3", semitone:15},
++    {code:"KeyE", label:"E", semitone:16}
++  ];
++  const WHITE_SEMITONES = [0,2,4,5,7,9,11,12,14,16];
++  const BLACK_SEMITONES = [1,3,6,8,10,13,15];
++  const BLACK_TO_WHITE_INDEX = {1:0,3:1,6:3,8:4,10:5,13:7,15:8};
++
++  const DEGREE_FUNCTIONS = {
++    1:{code:"tonic", label:"T", name:"トニック"},
++    2:{code:"subdom", label:"SD", name:"サブドミナント"},
++    3:{code:"tonic", label:"T", name:"トニック"},
++    4:{code:"subdom", label:"SD", name:"サブドミナント"},
++    5:{code:"dominant", label:"D", name:"ドミナント"},
++    6:{code:"tonic", label:"T", name:"トニック"},
++    7:{code:"dominant", label:"D", name:"ドミナント"}
++  };
++  const SECONDARY_INFO = {label:"SecD", name:"セカンダリードミナント"};
++  function midiToHz(m){
++    return 440 * Math.pow(2,(m-69)/12);
++  }
++
++  function buildScale(keyIndex, mode, minorOpt){
++    let steps = mode === "major" ? SCALE_MAJOR : SCALE_MINOR_NAT;
++    if(mode !== "major" && minorOpt === "harmV"){
++      steps = SCALE_MINOR_HARM;
++    }
++    return {tonic:keyIndex, steps};
++  }
++
++  function chordIntervalsByStack(d, steps, want7th){
++    const triad = [0,2,4].map(k => {
++      const idx = (d + k) % 7;
++      const wrap = (d + k) >= 7 ? 12 : 0;
++      return steps[idx] + wrap;
++    });
++    if(!want7th) return triad;
++    const idx = (d + 6) % 7;
++    const wrap = (d + 6) >= 7 ? 12 : 0;
++    return triad.concat(steps[idx] + wrap);
++  }
++
++  function addNinth(intervals, d, steps){
++    const idx = (d + 1) % 7;
++    const wrap = (d + 1) >= 7 ? 12 : 0;
++    const ninth = steps[idx] + wrap + 12;
++    return intervals.concat(ninth);
++  }
++
++  function secondaryDominantIntervals(want7th, want9th){
++    const ivals = [0,4,7];
++    if(want7th){
++      ivals.push(10);
++    }
++    if(want9th){
++      ivals.push(14);
++    }
++    return ivals;
++  }
++
++  function romanNumeral(d, mode, minorOpt, has7th, has9th){
++    const MAJOR = ["I","ii","iii","IV","V","vi","vii°"];
++    const MINOR = ["i","ii°","III","iv","v","VI","VII"];
++    const table = mode === "major" ? MAJOR.slice() : MINOR.slice();
++    if(mode !== "major" && minorOpt === "harmV"){
++      table[4] = "V";
++      table[6] = "vii°";
++    }
++    let rn = table[d];
++    if(has7th && rn.includes("°")){
++      rn = rn.replace("°","ø");
++    }
++    let tag = "";
++    if(has7th) tag = "7";
++    if(has9th) tag = tag ? `${tag},9` : "9";
++    return tag ? `${rn} (${tag})` : rn;
++  }
++
++  const AudioSynth = {
++    ctx:null,
++    master:null,
++    active:new Map(),
++    adsr:{a:0.01,d:0.12,s:0.7,r:0.22},
++    ensure(){
++      if(!this.ctx){
++        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
++        this.master = this.ctx.createGain();
++        this.master.gain.value = 0.2;
++        this.master.connect(this.ctx.destination);
++      }
++      return this.ctx;
++    },
++    voice(freq, wave){
++      const osc = this.ctx.createOscillator();
++      osc.type = wave;
++      osc.frequency.value = freq;
++      const gain = this.ctx.createGain();
++      gain.gain.value = 0;
++      osc.connect(gain);
++      gain.connect(this.master);
++      return {osc, gain};
++    },
++    play(id, midiNotes, opts={}){
++      this.ensure();
++      if(this.ctx.state === "suspended"){
++        this.ctx.resume().catch(()=>{});
++      }
++      this.stop(id);
++      const wave = opts.wave || "triangle";
++      const arp = !!opts.arp;
++      const strum = Math.max(0, opts.strumMs|0) / 1000;
++      const startTime = this.ctx.currentTime;
++      const nodes = [];
++      midiNotes.forEach((m,i)=>{
++        const {osc, gain} = this.voice(midiToHz(m), wave);
++        const offset = arp ? i * 0.07 : i * strum;
++        osc.start(startTime + offset);
++        const a = startTime + offset;
++        const peak = a + this.adsr.a;
++        const decay = peak + this.adsr.d;
++        gain.gain.cancelScheduledValues(0);
++        gain.gain.setValueAtTime(0, a);
++        gain.gain.linearRampToValueAtTime(1, peak);
++        gain.gain.linearRampToValueAtTime(this.adsr.s, decay);
++        nodes.push({osc, gain});
++      });
++      const stop = (delay=0)=>{
++        const t = this.ctx.currentTime + delay;
++        nodes.forEach(({osc, gain})=>{
++          gain.gain.cancelScheduledValues(0);
++          gain.gain.setValueAtTime(gain.gain.value, t);
++          gain.gain.linearRampToValueAtTime(0.0001, t + this.adsr.r);
++          osc.stop(t + this.adsr.r + 0.02);
++        });
++      };
++      this.active.set(id, {nodes, stop});
++      return {stop};
++    },
++    playChord(id, midiNotes, opts={}){
++      return this.play(id, midiNotes, opts);
++    },
++    playNote(id, midi, opts={}){
++      return this.play(id, [midi], Object.assign({strumMs:0, arp:false}, opts));
++    },
++    stop(id){
++      const handle = this.active.get(id);
++      if(handle){
++        try{handle.stop(0);}catch(e){}
++        this.active.delete(id);
++      }
++    },
++    stopAll(){
++      for(const [,handle] of this.active.entries()){
++        try{handle.stop(0);}catch(e){}
++      }
++      this.active.clear();
++    }
++  };
++  const keySel = document.getElementById("keySel");
++  const modeSel = document.getElementById("modeSel");
++  const minorOpt = document.getElementById("minorOpt");
++  const invSel = document.getElementById("invSel");
++  const octInput = document.getElementById("octInput");
++  const waveSel = document.getElementById("waveSel");
++  const strumMs = document.getElementById("strumMs");
++  const btn7 = document.getElementById("btn7");
++  const btn9 = document.getElementById("btn9");
++  const btnLatch = document.getElementById("btnLatch");
++  const btnArp = document.getElementById("btnArp");
++  const degreeContainer = document.getElementById("degreeButtons");
++  const lastEl = document.getElementById("last");
++  const romanEl = document.getElementById("roman");
++  const hintEl = document.getElementById("hint");
++  const pianoKeysEl = document.getElementById("pianoKeys");
++  const noteDisplay = document.getElementById("noteDisplay");
++
++  KEY_NAMES.forEach((name, idx)=>{
++    const opt = document.createElement("option");
++    opt.value = String(idx);
++    opt.textContent = name;
++    keySel.appendChild(opt);
++  });
++  keySel.value = "0";
++
++  const state = {
++    keyIndex:0,
++    mode:"major",
++    minorOpt:"nat",
++    inversion:0,
++    baseOct:4,
++    wave:"triangle",
++    strum:15,
++    seventh:false,
++    ninth:false,
++    latch:false,
++    arp:false
++  };
++
++  const activeDegrees = new Set();
++  const activeSecondaries = new Set();
++  const degreeButtons = new Map();
++  const secondaryButtons = new Map();
++  const pressedChordKeys = new Map();
++  const secondaryModifierCodes = new Set(["IntlYen","Backslash"]);
++  let secondaryModifierActive = false;
++  const chordKeyMap = new Map([
++    ["Numpad1",1],["Numpad2",2],["Numpad3",3],
++    ["Numpad4",4],["Numpad5",5],["Numpad6",6],["Numpad7",7],
++    ["Digit1",1],["Digit2",2],["Digit3",3],
++    ["Digit4",4],["Digit5",5],["Digit6",6],["Digit7",7]
++  ]);
++
++  const keyboardToSemitone = new Map();
++  const semitoneLabels = new Map();
++  KEYBOARD_BINDINGS.forEach(({code,label,semitone})=>{
++    keyboardToSemitone.set(code, semitone);
++    if(!semitoneLabels.has(semitone)){
++      semitoneLabels.set(semitone, []);
++    }
++    semitoneLabels.get(semitone).push(label);
++  });
++
++  const semitoneData = new Map();
++  const noteActiveCounts = new Map();
++  const activeNotes = new Map();
++  const pointerTokens = new Map();
++
++  function ensureSynth(){
++    const ctx = AudioSynth.ensure();
++    if(ctx && ctx.state === "suspended"){
++      ctx.resume().catch(()=>{});
++    }
++  }
++
++  function midiFromSemitone(semi){
++    return 12 * (state.baseOct + 1) + semi;
++  }
++
++  function midiToLabel(midi){
++    const name = NOTE_NAMES[midi % 12];
++    const oct = Math.floor(midi / 12) - 1;
++    return `${name}${oct}`;
++  }
++
++  function noteNameForSemitone(semi){
++    return midiToLabel(midiFromSemitone(semi));
++  }
++
++  function updateSemitoneVisual(semitone){
++    const data = semitoneData.get(semitone);
++    if(!data) return;
++    const active = (noteActiveCounts.get(semitone) || 0) > 0;
++    data.element.classList.toggle("active", active);
++    data.noteEl.textContent = active ? midiToLabel(midiFromSemitone(semitone)) : noteNameForSemitone(semitone);
++  }
++
++  function updateNoteDisplay(){
++    if(noteActiveCounts.size === 0){
++      noteDisplay.textContent = "--";
++      return;
++    }
++    const names = Array.from(noteActiveCounts.keys())
++      .sort((a,b)=>a-b)
++      .map(semi => midiToLabel(midiFromSemitone(semi)));
++    noteDisplay.textContent = names.join(" / ");
++  }
++  function startNote(semitone, token){
++    if(activeNotes.has(token)) return;
++    ensureSynth();
++    syncStateFromInputs();
++    const midi = midiFromSemitone(semitone);
++    AudioSynth.playNote(token, midi, {wave:state.wave});
++    activeNotes.set(token, {semitone});
++    noteActiveCounts.set(semitone, (noteActiveCounts.get(semitone) || 0) + 1);
++    updateSemitoneVisual(semitone);
++    updateNoteDisplay();
++  }
++
++  function stopNote(token){
++    const info = activeNotes.get(token);
++    if(!info) return;
++    AudioSynth.stop(token);
++    activeNotes.delete(token);
++    const semitone = info.semitone;
++    const next = (noteActiveCounts.get(semitone) || 1) - 1;
++    if(next <= 0){
++      noteActiveCounts.delete(semitone);
++    }else{
++      noteActiveCounts.set(semitone, next);
++    }
++    updateSemitoneVisual(semitone);
++    updateNoteDisplay();
++  }
++
++  function attachPointerHandlers(btn, semitone){
++    btn.addEventListener("pointerdown", (ev)=>{
++      ev.preventDefault();
++      const token = `ptr-${ev.pointerId}-${semitone}`;
++      pointerTokens.set(ev.pointerId, {token, semitone});
++      startNote(semitone, token);
++      try{ btn.setPointerCapture(ev.pointerId); }catch(_){}
++    });
++    const endPointer = (ev)=>{
++      const info = pointerTokens.get(ev.pointerId);
++      if(!info) return;
++      stopNote(info.token);
++      pointerTokens.delete(ev.pointerId);
++      try{ btn.releasePointerCapture(ev.pointerId); }catch(_){}
++    };
++    btn.addEventListener("pointerup", endPointer);
++    btn.addEventListener("pointerleave", endPointer);
++    btn.addEventListener("pointercancel", endPointer);
++  }
++
++  const pianoInner = document.createElement("div");
++  pianoInner.className = "piano-inner";
++  pianoKeysEl.appendChild(pianoInner);
++
++  const WHITE_KEY_WIDTH = 60;
++  const WHITE_KEY_GAP = 6;
++  const BLACK_KEY_WIDTH = 36;
++  const BLACK_KEY_HEIGHT = 116;
++  const PADDING = 6;
++
++  const whiteCount = WHITE_SEMITONES.length;
++  const innerWidth = PADDING * 2 + whiteCount * WHITE_KEY_WIDTH + (whiteCount - 1) * WHITE_KEY_GAP;
++  pianoInner.style.width = `${innerWidth}px`;
++
++  function createPianoKey(semitone, type, left, width, height){
++    const btn = document.createElement("button");
++    btn.type = "button";
++    btn.className = `piano-key ${type}`;
++    btn.dataset.semitone = String(semitone);
++    btn.style.left = `${left}px`;
++    btn.style.width = `${width}px`;
++    if(height != null){
++      btn.style.height = `${height}px`;
++    }
++    const labels = semitoneLabels.get(semitone) || [];
++    const labelSpan = document.createElement("span");
++    labelSpan.className = "label";
++    labelSpan.textContent = labels.join(" / ");
++    const noteSpan = document.createElement("span");
++    noteSpan.className = "note";
++    noteSpan.textContent = noteNameForSemitone(semitone);
++    btn.append(labelSpan, noteSpan);
++    pianoInner.appendChild(btn);
++    semitoneData.set(semitone, {element:btn, noteEl:noteSpan, labelEl:labelSpan});
++    attachPointerHandlers(btn, semitone);
++    return btn;
++  }
++
++  WHITE_SEMITONES.forEach((semi, index)=>{
++    const left = PADDING + index * (WHITE_KEY_WIDTH + WHITE_KEY_GAP);
++    createPianoKey(semi, "white", left, WHITE_KEY_WIDTH, null);
++  });
++
++  BLACK_SEMITONES.forEach(semi=>{
++    const precedingIndex = BLACK_TO_WHITE_INDEX[semi];
++    if(precedingIndex === undefined) return;
++    const baseLeft = PADDING + precedingIndex * (WHITE_KEY_WIDTH + WHITE_KEY_GAP);
++    const center = baseLeft + WHITE_KEY_WIDTH + (WHITE_KEY_GAP / 2);
++    const left = center - (BLACK_KEY_WIDTH / 2);
++    createPianoKey(semi, "black", left, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT).style.zIndex = "5";
++  });
++  function setDegreeActive(deg, active){
++    const entry = degreeButtons.get(deg);
++    if(entry && entry.button){
++      entry.button.classList.toggle("active", active);
++    }
++    if(active){
++      activeDegrees.add(deg);
++    }else{
++      activeDegrees.delete(deg);
++    }
++  }
++
++  function setSecondaryActive(deg, active){
++    const entry = secondaryButtons.get(deg);
++    if(entry && entry.button){
++      entry.button.classList.toggle("active", active);
++    }
++    if(active){
++      activeSecondaries.add(deg);
++    }else{
++      activeSecondaries.delete(deg);
++    }
++  }
++
++  function syncStateFromInputs(){
++    state.keyIndex = Number(keySel.value);
++    state.mode = modeSel.value;
++    state.minorOpt = minorOpt.value;
++    state.inversion = Number(invSel.value);
++    state.baseOct = Math.max(2, Math.min(6, Number(octInput.value) || 4));
++    state.wave = waveSel.value;
++    state.strum = Math.max(0, Number(strumMs.value) || 0);
++  }
++
++  function applyUI(){
++    syncStateFromInputs();
++    updateKeyNoteLabels();
++    updateDegreeLabels();
++  }
++
++  function updateToggles(){
++    btn7.setAttribute("aria-pressed", String(state.seventh));
++    btn9.setAttribute("aria-pressed", String(state.ninth));
++    btnLatch.setAttribute("aria-pressed", String(state.latch));
++    btnArp.setAttribute("aria-pressed", String(state.arp));
++  }
++
++  function formatChordName(rootName, normalized){
++    const triad = normalized.slice(0,3);
++    let triadType = "major";
++    if(triad[1] === 3 && triad[2] === 7){
++      triadType = "minor";
++    }else if(triad[1] === 3 && triad[2] === 6){
++      triadType = "diminished";
++    }else if(triad[1] === 4 && triad[2] === 8){
++      triadType = "augmented";
++    }
++    let suffix = "";
++    if(triadType === "minor"){
++      suffix = "m";
++    }else if(triadType === "diminished"){
++      suffix = "dim";
++    }else if(triadType === "augmented"){
++      suffix = "aug";
++    }
++    if(state.seventh && normalized.length >= 4){
++      const seventh = normalized[3];
++      if(triadType === "major"){
++        if(seventh === 11){
++          suffix = suffix ? suffix + "maj7" : "maj7";
++        }else if(seventh === 10){
++          suffix = suffix ? suffix + "7" : "7";
++        }else{
++          suffix = suffix ? suffix + `(${seventh})` : `7(${seventh})`;
++        }
++      }else if(triadType === "minor"){
++        if(seventh === 10){
++          suffix = suffix === "m" ? "m7" : suffix + "7";
++        }else if(seventh === 11){
++          suffix = suffix === "m" ? "m(maj7)" : suffix + "(maj7)";
++        }else{
++          suffix = suffix + `(7${seventh})`;
++        }
++      }else if(triadType === "diminished"){
++        if(seventh === 10){
++          suffix = "m7b5";
++        }else if(seventh === 9){
++          suffix = "dim7";
++        }else{
++          suffix = suffix + "7";
++        }
++      }else{
++        if(seventh === 11){
++          suffix = suffix ? suffix + "maj7" : "maj7";
++        }else if(seventh === 10){
++          suffix = suffix ? suffix + "7" : "7";
++        }else{
++          suffix = suffix + "7";
++        }
++      }
++    }
++    if(state.ninth){
++      const ninth = normalized[state.seventh ? 4 : 3];
++      if(state.seventh){
++        if(triadType === "major"){
++          if(/maj7$/.test(suffix)){
++            suffix = suffix.replace(/maj7$/, "maj9");
++          }else if(/7$/.test(suffix)){
++            suffix = suffix.replace(/7$/, "9");
++          }else if(!suffix){
++            suffix = "9";
++          }else{
++            suffix += "(9)";
++          }
++        }else if(triadType === "minor"){
++          if(/m7$/.test(suffix)){
++            suffix = suffix.replace(/m7$/, "m9");
++          }else if(/\(maj7\)$/.test(suffix)){
++            suffix = suffix.replace("(maj7)", "(maj9)");
++          }else if(/7$/.test(suffix)){
++            suffix = suffix.replace(/7$/, "9");
++          }else if(!suffix){
++            suffix = "9";
++          }else{
++            suffix += "(9)";
++          }
++        }else if(triadType === "diminished"){
++          if(suffix === "m7b5"){
++            suffix = "m9b5";
++          }else if(suffix === "dim7"){
++            suffix = "dim7(9)";
++          }else if(/7$/.test(suffix)){
++            suffix = suffix.replace(/7$/, "9");
++          }else{
++            suffix += "(9)";
++          }
++        }else{
++          if(/maj7$/.test(suffix)){
++            suffix = suffix.replace(/maj7$/, "maj9");
++          }else if(/7$/.test(suffix)){
++            suffix = suffix.replace(/7$/, "9");
++          }else if(!suffix){
++            suffix = "9";
++          }else{
++            suffix += "(9)";
++          }
++        }
++      }else{
++        if(triadType === "major"){
++          suffix = suffix ? suffix + "add9" : "add9";
++        }else if(triadType === "minor"){
++          if(suffix === "m"){
++            suffix = "m(add9)";
++          }else{
++            suffix += "(add9)";
++          }
++        }else if(triadType === "diminished"){
++          if(suffix === "dim"){
++            suffix = "dim(add9)";
++          }else{
++            suffix += "(add9)";
++          }
++        }else{
++          suffix += "(add9)";
++        }
++      }
++    }
++    return suffix ? `${rootName}${suffix}` : rootName;
++  }
++
++  function secondaryDominantData(scale, deg){
++    const d = deg - 1;
++    const targetSemi = (state.keyIndex + scale.steps[d]) % 12;
++    const rootSemi = (targetSemi + 7) % 12;
++    const ivals = secondaryDominantIntervals(state.seventh, state.ninth);
++    const normalized = ivals.map(v => (v - ivals[0] + 120) % 12);
++    const rootName = NOTE_NAMES[rootSemi];
++    const chordName = formatChordName(rootName, normalized);
++    const targetRoman = romanNumeral(d, state.mode, state.minorOpt, false, false);
++    const roman = `V/${targetRoman}`;
++    return {rootSemi, ivals, normalized, chordName, roman, targetRoman};
++  }
++
++  function updateDegreeLabels(){
++    const scale = buildScale(state.keyIndex, state.mode, state.minorOpt);
++    degreeButtons.forEach((entry, deg)=>{
++      const d = deg - 1;
++      let ivals = chordIntervalsByStack(d, scale.steps, state.seventh);
++      if(state.ninth){
++        ivals = addNinth(ivals, d, scale.steps);
++      }
++      const normalized = ivals.map(v => (v - ivals[0] + 120) % 12);
++      const rootSemi = (state.keyIndex + scale.steps[d]) % 12;
++      const rootName = NOTE_NAMES[rootSemi];
++      const chordName = formatChordName(rootName, normalized);
++      const roman = romanNumeral(d, state.mode, state.minorOpt, state.seventh, state.ninth);
++      entry.romanEl.textContent = roman;
++      entry.nameEl.textContent = chordName;
++      entry.button.setAttribute("aria-label", `${roman} ${chordName} ${entry.funcInfo.name}`);
++    });
++    updateSecondaryLabels(scale);
++  }
++
++  function updateSecondaryLabels(scale){
++    secondaryButtons.forEach((entry, deg)=>{
++      const info = secondaryDominantData(scale, deg);
++      entry.romanEl.textContent = info.roman;
++      entry.nameEl.textContent = info.chordName;
++      entry.button.setAttribute("aria-label", `${info.roman} ${info.chordName} ${SECONDARY_INFO.name}`);
++    });
++  }
++
++  function handleChordPress(deg){
++    if(state.latch && activeDegrees.has(deg)){
++      AudioSynth.stop(`deg${deg}`);
++      setDegreeActive(deg, false);
++      return;
++    }
++    ensureSynth();
++    syncStateFromInputs();
++    const scale = buildScale(state.keyIndex, state.mode, state.minorOpt);
++    const d = deg - 1;
++    let ivals = chordIntervalsByStack(d, scale.steps, state.seventh);
++    if(state.ninth){
++      ivals = addNinth(ivals, d, scale.steps);
++    }
++    const tonicMidi = 12 * (state.baseOct + 1) + state.keyIndex;
++    let midiNotes = ivals.map(v => tonicMidi + v);
++    const inv = Math.min(state.seventh ? 3 : 2, state.inversion);
++    for(let i=0; i<inv; i++){
++      midiNotes[0] += 12;
++      midiNotes.push(midiNotes.shift());
++    }
++    midiNotes = midiNotes.map(m => (m < 45 ? m + 12 : m));
++    AudioSynth.playChord(`deg${deg}`, midiNotes, {
++      wave:state.wave,
++      strumMs:state.strum,
++      arp:state.arp
++    });
++    setDegreeActive(deg, true);
++    const normalized = ivals.map(v => (v - ivals[0] + 120) % 12);
++    const rootSemi = (state.keyIndex + scale.steps[d]) % 12;
++    const rootName = NOTE_NAMES[rootSemi];
++    const chordName = formatChordName(rootName, normalized);
++    const roman = romanNumeral(d, state.mode, state.minorOpt, state.seventh, state.ninth);
++    const funcInfo = DEGREE_FUNCTIONS[deg];
++    const pitchNames = midiNotes.map(m => NOTE_NAMES[m % 12]);
++    lastEl.textContent = `${KEY_NAMES[state.keyIndex]} ${state.mode === "major" ? "Major" : "Minor"} ▶ ${chordName} (${pitchNames.join(" ")}) [${funcInfo.label}]`;
++    hintEl.textContent = `Voicing ${["Root","1st","2nd","3rd"][state.inversion] || "Root"} / ${state.wave} / ${state.arp ? "Arp" : "Block"} / 機能 ${funcInfo.name} (${funcInfo.label})${state.seventh ? " +7" : ""}${state.ninth ? " +9" : ""}`;
++    romanEl.textContent = roman;
++  }
++
++  function handleChordRelease(deg){
++    if(state.latch) return;
++    AudioSynth.stop(`deg${deg}`);
++    setDegreeActive(deg, false);
++  }
++
++  function handleSecondaryPress(deg){
++    if(state.latch && activeSecondaries.has(deg)){
++      AudioSynth.stop(`sec${deg}`);
++      setSecondaryActive(deg, false);
++      return;
++    }
++    ensureSynth();
++    syncStateFromInputs();
++    const scale = buildScale(state.keyIndex, state.mode, state.minorOpt);
++    const info = secondaryDominantData(scale, deg);
++    const baseMidi = 12 * (state.baseOct + 1) + info.rootSemi;
++    let midiNotes = info.ivals.map(v => baseMidi + v);
++    const inv = Math.min(info.ivals.length - 1, state.inversion);
++    for(let i=0; i<inv; i++){
++      midiNotes[0] += 12;
++      midiNotes.push(midiNotes.shift());
++    }
++    midiNotes = midiNotes.map(m => (m < 45 ? m + 12 : m));
++    AudioSynth.playChord(`sec${deg}`, midiNotes, {
++      wave:state.wave,
++      strumMs:state.strum,
++      arp:state.arp
++    });
++    setSecondaryActive(deg, true);
++    const funcInfo = SECONDARY_INFO;
++    const pitchNames = midiNotes.map(m => NOTE_NAMES[m % 12]);
++    lastEl.textContent = `${KEY_NAMES[state.keyIndex]} ${state.mode === "major" ? "Major" : "Minor"} ▶ ${info.chordName} (${pitchNames.join(" ")}) [${funcInfo.label}]`;
++    hintEl.textContent = `Voicing ${["Root","1st","2nd","3rd"][state.inversion] || "Root"} / ${state.wave} / ${state.arp ? "Arp" : "Block"} / 機能 ${funcInfo.name} (${funcInfo.label})${state.seventh ? " +7" : ""}${state.ninth ? " +9" : ""}`;
++    romanEl.textContent = info.roman;
++  }
++
++  function handleSecondaryRelease(deg){
++    if(state.latch) return;
++    AudioSynth.stop(`sec${deg}`);
++    setSecondaryActive(deg, false);
++  }
++
++  function updateKeyNoteLabels(){
++    for(const semitone of semitoneData.keys()){
++      updateSemitoneVisual(semitone);
++    }
++    updateNoteDisplay();
++  }
++  const DEG_ROMAN_BASE = ["I","II","III","IV","V","VI","VII"];
++  for(let deg=1; deg<=7; deg++){
++    const info = DEGREE_FUNCTIONS[deg];
++    const block = document.createElement("div");
++    block.className = "degree-block";
++    degreeContainer.appendChild(block);
++
++    const btn = document.createElement("button");
++    btn.type = "button";
++    btn.className = `degree-btn func-${info.code}`;
++    btn.dataset.degree = String(deg);
++    const label = document.createElement("div");
++    label.className = "deg";
++    label.textContent = DEG_ROMAN_BASE[deg-1];
++    const name = document.createElement("div");
++    name.className = "deg-name";
++    name.textContent = "--";
++    const func = document.createElement("div");
++    func.className = "deg-func";
++    func.textContent = info.label;
++    btn.append(label, name, func);
++    block.appendChild(btn);
++    degreeButtons.set(deg, {button:btn, romanEl:label, nameEl:name, funcEl:func, funcInfo:info});
++
++    const secBtn = document.createElement("button");
++    secBtn.type = "button";
++    secBtn.className = "secondary-btn func-dominant";
++    const secRoman = document.createElement("div");
++    secRoman.className = "sec-roman";
++    secRoman.textContent = "V/" + DEG_ROMAN_BASE[deg-1];
++    const secName = document.createElement("div");
++    secName.className = "sec-name";
++    secName.textContent = "--";
++    secBtn.append(secRoman, secName);
++    block.appendChild(secBtn);
++    secondaryButtons.set(deg, {button:secBtn, romanEl:secRoman, nameEl:secName});
++
++    btn.addEventListener("pointerdown", (ev)=>{
++      ev.preventDefault();
++      handleChordPress(deg);
++      try{ btn.setPointerCapture(ev.pointerId); }catch(_){}
++    });
++    const releasePrimary = ()=>{
++      handleChordRelease(deg);
++    };
++    btn.addEventListener("pointerup", releasePrimary);
++    btn.addEventListener("pointerleave", releasePrimary);
++    btn.addEventListener("pointercancel", releasePrimary);
++
++    secBtn.addEventListener("pointerdown", (ev)=>{
++      ev.preventDefault();
++      handleSecondaryPress(deg);
++      try{ secBtn.setPointerCapture(ev.pointerId); }catch(_){}
++    });
++    const releaseSecondary = ()=>{
++      handleSecondaryRelease(deg);
++    };
++    secBtn.addEventListener("pointerup", releaseSecondary);
++    secBtn.addEventListener("pointerleave", releaseSecondary);
++    secBtn.addEventListener("pointercancel", releaseSecondary);
++  }
++
++  keySel.addEventListener("change", applyUI);
++  modeSel.addEventListener("change", applyUI);
++  minorOpt.addEventListener("change", applyUI);
++  invSel.addEventListener("change", applyUI);
++  octInput.addEventListener("change", applyUI);
++  waveSel.addEventListener("change", applyUI);
++  strumMs.addEventListener("change", applyUI);
++
++  btn7.addEventListener("click", ()=>{
++    state.seventh = !state.seventh;
++    updateToggles();
++    updateDegreeLabels();
++  });
++  btn9.addEventListener("click", ()=>{
++    state.ninth = !state.ninth;
++    updateToggles();
++    updateDegreeLabels();
++  });
++  btnLatch.addEventListener("click", ()=>{
++    state.latch = !state.latch;
++    updateToggles();
++  });
++  btnArp.addEventListener("click", ()=>{
++    state.arp = !state.arp;
++    updateToggles();
++  });
++  window.addEventListener("keydown", (ev)=>{
++    if(ev.repeat) return;
++    if(secondaryModifierCodes.has(ev.code)){
++      secondaryModifierActive = true;
++      ev.preventDefault();
++      return;
++    }
++    if(chordKeyMap.has(ev.code)){
++      const deg = chordKeyMap.get(ev.code);
++      const type = secondaryModifierActive ? "secondary" : "primary";
++      pressedChordKeys.set(ev.code, {type, deg});
++      if(type === "secondary"){
++        handleSecondaryPress(deg);
++      }else{
++        handleChordPress(deg);
++      }
++      ev.preventDefault();
++      return;
++    }
++    if(keyboardToSemitone.has(ev.code)){
++      const token = `kbd-${ev.code}`;
++      startNote(keyboardToSemitone.get(ev.code), token);
++      ev.preventDefault();
++      return;
++    }
++    switch(ev.code){
++      case "NumpadAdd":
++        keySel.value = String((Number(keySel.value) + 1) % KEY_NAMES.length);
++        applyUI();
++        ev.preventDefault();
++        break;
++      case "NumpadSubtract":
++        keySel.value = String((Number(keySel.value) + KEY_NAMES.length - 1) % KEY_NAMES.length);
++        applyUI();
++        ev.preventDefault();
++        break;
++      case "NumpadMultiply":{
++        const waves = ["triangle","sawtooth","square","sine"];
++        const idx = waves.indexOf(state.wave);
++        const next = waves[(idx + 1) % waves.length];
++        state.wave = next;
++        waveSel.value = next;
++        ev.preventDefault();
++        break;
++      }
++      case "NumpadDivide":
++        invSel.value = String((Number(invSel.value) + 1) % 4);
++        applyUI();
++        ev.preventDefault();
++        break;
++      case "NumpadEnter":
++        state.latch = !state.latch;
++        updateToggles();
++        ev.preventDefault();
++        break;
++      case "NumpadDecimal":
++        state.arp = !state.arp;
++        updateToggles();
++        ev.preventDefault();
++        break;
++      case "Numpad8":
++        state.seventh = !state.seventh;
++        updateToggles();
++        updateDegreeLabels();
++        ev.preventDefault();
++        break;
++      case "Numpad9":
++        state.ninth = !state.ninth;
++        updateToggles();
++        updateDegreeLabels();
++        ev.preventDefault();
++        break;
++      case "Digit0":
++      case "Numpad0":
++        state.mode = state.mode === "major" ? "minor" : "major";
++        modeSel.value = state.mode;
++        applyUI();
++        ev.preventDefault();
++        break;
++      case "ArrowUp":
++        state.baseOct = Math.min(6, state.baseOct + 1);
++        octInput.value = String(state.baseOct);
++        updateKeyNoteLabels();
++        ev.preventDefault();
++        break;
++      case "ArrowDown":
++        state.baseOct = Math.max(2, state.baseOct - 1);
++        octInput.value = String(state.baseOct);
++        updateKeyNoteLabels();
++        ev.preventDefault();
++        break;
++      default:
++        break;
++    }
++  });
++
++  window.addEventListener("keyup", (ev)=>{
++    if(secondaryModifierCodes.has(ev.code)){
++      secondaryModifierActive = false;
++      ev.preventDefault();
++      return;
++    }
++    if(pressedChordKeys.has(ev.code)){
++      const info = pressedChordKeys.get(ev.code);
++      pressedChordKeys.delete(ev.code);
++      if(info.type === "secondary"){
++        handleSecondaryRelease(info.deg);
++      }else{
++        handleChordRelease(info.deg);
++      }
++    }
++    if(keyboardToSemitone.has(ev.code)){
++      stopNote(`kbd-${ev.code}`);
++    }
++  });
++
++  window.addEventListener("blur", ()=>{
++    secondaryModifierActive = false;
++    for(const info of pressedChordKeys.values()){
++      if(info.type === "secondary"){
++        handleSecondaryRelease(info.deg);
++      }else{
++        handleChordRelease(info.deg);
++      }
++    }
++    pressedChordKeys.clear();
++    for(const token of Array.from(activeNotes.keys())){
++      stopNote(token);
++    }
++    pointerTokens.clear();
++  });
++
++  window.addEventListener("beforeunload", ()=>{
++    AudioSynth.stopAll();
++  });
++
++  applyUI();
++  updateToggles();
++})();
++</script>
++</body>
++</html>
